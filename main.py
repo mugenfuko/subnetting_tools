@@ -1,4 +1,4 @@
-import tools, cli, modules
+import tools, cli
 
 sbntfndr = tools.subnet_finder()
 

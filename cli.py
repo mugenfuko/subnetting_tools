@@ -1,6 +1,5 @@
 def run(tools, intro_shown=False):
     str = ""
-    #output = ""
     if not intro_shown:
         print("SUBNETTING TOOLS (q to quit)")
     
