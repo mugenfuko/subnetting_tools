@@ -3,7 +3,7 @@ import modules
 class subnet_finder:
     name = "Subnet Finder"
     description = "A tool to find the network address of a given subnet."
-    usage = "usage: sbnf [IPV4 ADDRESS] [SUBNETMASK]\n\n\"rand, -r\" -- Script generates random ip/mask and executes"
+    usage = "usage: sbnf [IPV4 ADDRESS] [SUBNETMASK]\nrand, -r: Script generates random ip/mask and executes"
 
     def exec(self, cmd):
 
@@ -16,6 +16,9 @@ class subnet_finder:
 
         def parse_cmd(cmd):
 
+            if not cmd:
+                return "Missing IP address and netmask"
+
             if cmd[0] == "help" or cmd[0] == "-h":
                 return f"{self.name} - {self.description}\n{self.usage}"
 
@@ -23,20 +26,20 @@ class subnet_finder:
             if cmd[0] == "rand" or cmd[0] == "-r":
                 random_ip = modules.random_ip
                 random_netmask = modules.random_netmask
-                return f"(RAND)IP{random_ip} (RAND)MASK{random_netmask}\nSUBNET: {'.'.join(generate_subnet_address(random_ip, random_netmask, find_network_value(random_ip, random_netmask)))}"
+                return f"[sbnf] (RAND)IP{random_ip} (RAND)MASK{random_netmask}\nSUBNET: {'.'.join(generate_subnet_address(random_ip, random_netmask, find_network_value(random_ip, random_netmask)))}"
             
             if len(cmd) < 2:
-                return "Missing IP address or netmask!"
+                return "Missing IP address or netmask"
 
             if is_ipv4_address(cmd[0]):
                 data["address"] = cmd[0].split('.')
             else:
-                return f"{cmd[0]} is not a valid IPv4 address."
+                return f"{cmd[0]} is not a valid IPv4 address"
 
             if is_netmask(cmd[1]):
                 data["netmask"] = cmd[1].split('.')
             else:
-                return f"{cmd[1]} is not a valid netmask."
+                return f"{cmd[1]} is not a valid netmask"
 
         def is_integer(str):
             try:
@@ -124,10 +127,10 @@ class subnet_finder:
         #data["netmask"] = modules.random_netmask
 
         # Disable line below for testing purposes
-        output = parse_cmd(cmd)
+        output = f"[sbnf] {parse_cmd(cmd)}"
 
         if data["address"] and data["netmask"]:
             subnet_address = generate_subnet_address(data["address"], data["netmask"], find_network_value(data["address"], data["netmask"]))
-            return f"SUBNET: {'.'.join(subnet_address)}"
+            return f"[sbnf] SUBNET: {'.'.join(subnet_address)}"
         else:
             return output

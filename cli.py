@@ -1,27 +1,32 @@
 def run(tools, intro_shown=False):
-    output = ""
+    str = ""
+    #output = ""
     if not intro_shown:
-        print("***SUBNETTING TOOLS***")
-    str = input("> ")
+        print("SUBNETTING TOOLS (q to quit)")
+    
+    while str != 'q':
 
-    str = str.lower()
+        str = input("> ")
 
-    if str == "help" or str == "-h":
-        print("List of commands:")
-        print("list, -l: Displays a list of available subnetting tools.")
+        str = str.lower()
 
-    if str == "list" or str == "-l":
-        for tool in tools:
-            print(f"[{tool}] {tools[tool].name} - {tools[tool].description}")
+        if str == 'q':
+            return
 
-    cmd = str.split()
-    try:
-        program = cmd.pop(0)
-        if program in tools:
-            output = tools[program].exec(cmd)
-    except IndexError:
-        # Optional toggle to keep program running if input can't be recognized
-        #run(tools, True)
-        return
-
-    print(output)
+        if str == "help" or str == "-h":
+            print("Commands:")
+            print("list, -l: Displays a list of available subnetting tools.")
+            print("help, -l: The screen that is currently being shown.")
+        elif str == "list" or str == "-l":
+            for tool in tools:
+                print(f"[{tool}] {tools[tool].name} - {tools[tool].description}")
+        else:
+            cmd = str.split()
+            try:
+                program = cmd.pop(0)
+                if program in tools:
+                    print(tools[program].exec(cmd))
+                else:
+                    print(f"Command {program} not found")
+            except IndexError:
+                continue
