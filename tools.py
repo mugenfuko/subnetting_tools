@@ -3,7 +3,7 @@ import modules
 class subnet_finder:
     name = "Subnet Finder"
     description = "A tool to find the network address of a given subnet."
-    usage = "usage: sbnf [IPV4 ADDRESS] [SUBNETMASK]"
+    usage = "usage: sbnf [IPV4 ADDRESS] [SUBNETMASK]\n\n\"rand, -r\" -- Script generates random ip/mask and executes"
 
     def exec(self, cmd):
 
@@ -18,6 +18,12 @@ class subnet_finder:
 
             if cmd[0] == "help" or cmd[0] == "-h":
                 return f"{self.name} - {self.description}\n{self.usage}"
+
+            # Super secret command for testing purposes
+            if cmd[0] == "rand" or cmd[0] == "-r":
+                random_ip = modules.random_ip
+                random_netmask = modules.random_netmask
+                return f"(RAND)IP{random_ip} (RAND)MASK{random_netmask}\nSUBNET: {'.'.join(generate_subnet_address(random_ip, random_netmask, find_network_value(random_ip, random_netmask)))}"
             
             if len(cmd) < 2:
                 return "Missing IP address or netmask!"
@@ -97,19 +103,31 @@ class subnet_finder:
             network_value = remainder * times_fits
             return network_value
 
-        # For testing purposes
-        data["address"] = modules.random_ip
-        data["netmask"] = modules.random_netmask
+        def generate_subnet_address(ad, nm, nv):
+            subnet_address = []
+            # Retrieve index of octet to process
+            index = find_relevant_index(nm)
+            for i, octet in enumerate(ad):
+                # Leave prior octets as is
+                if i < index:
+                    subnet_address.append(octet)
+                # Insert network value in relevant octet
+                elif i == index:
+                    subnet_address.append(str(nv))
+                # Insert zeroes in remaining octets
+                else:
+                    subnet_address.append("0")
+            return subnet_address
 
-        # Disabled for testing purposes
-        #output = parse_cmd(cmd)
+        # Enable lines below for testing purposes
+        #data["address"] = modules.random_ip
+        #data["netmask"] = modules.random_netmask
+
+        # Disable line below for testing purposes
+        output = parse_cmd(cmd)
+
         if data["address"] and data["netmask"]:
-            output = f"IPv4 Address: {'.'.join(data["address"])}\nSubnet mask: {'.'.join(data["netmask"])}".split('\n')
-
-            print(f"Address: {data["address"]}")
-            print(f"Netmask: {data["netmask"]}")
-            print(find_network_value(data["address"], data["netmask"]))
-            # TO DO: Write function that can generate a network address from network_value
-            # TO DO: Write function that can generate a broadcast address
-
-        return output
+            subnet_address = generate_subnet_address(data["address"], data["netmask"], find_network_value(data["address"], data["netmask"]))
+            return f"SUBNET: {'.'.join(subnet_address)}"
+        else:
+            return output

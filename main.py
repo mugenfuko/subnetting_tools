@@ -7,7 +7,7 @@ TOOLS = {
     }
 
 try:
-    #cli.run(TOOLS)
-    tools.subnet_finder.exec(sbntfndr, ["DEBUG"])
+    cli.run(TOOLS)
+    #tools.subnet_finder.exec(sbntfndr, ["DEBUG"])
 except EOFError:
     quit()
