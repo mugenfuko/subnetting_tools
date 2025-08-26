@@ -7,7 +7,7 @@ class subnet_finder:
 
     def exec(self, cmd):
 
-        NETMASK_VALUES = modules.netmask_values
+        NETMASK_VALUES = modules.generate_netmask_values()
 
         data = {
             "address" : "",
@@ -24,8 +24,8 @@ class subnet_finder:
 
             # Super secret command for testing purposes
             if cmd[0] == "rand" or cmd[0] == "-r":
-                random_ip = modules.random_ip
-                random_netmask = modules.random_netmask
+                random_ip = modules.generate_random_ip()
+                random_netmask = modules.generate_random_netmask()
                 return f"[sbnf] (RAND)IP{random_ip} (RAND)MASK{random_netmask}\nSUBNET: {'.'.join(generate_subnet_address(random_ip, random_netmask, find_network_value(random_ip, random_netmask)))}"
             
             if len(cmd) < 2:
@@ -88,9 +88,11 @@ class subnet_finder:
             return True
 
         def find_relevant_index(mask):
-            for i, octet in enumerate(mask):
-                if int(octet) < 255:
-                    return i
+            i = 0
+            while i < len(mask):
+                if int(mask[i]) < 255:
+                    break
+                i += 1
             return i
         
         def find_network_value(ad, nm):

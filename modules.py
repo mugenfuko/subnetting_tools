@@ -13,8 +13,6 @@ def generate_netmask_values():
         i += increment
     return values
 
-netmask_values = generate_netmask_values()
-
 # Functions below are for testing purposes
 def generate_random_ip():
     ip = []
@@ -24,9 +22,7 @@ def generate_random_ip():
         i += 1
     return ip
 
-random_ip = generate_random_ip()
-
-def generate_random_netmask(netmask_values):
+def generate_random_netmask(netmask_values=generate_netmask_values()):
     nm = []
     i = 0
     lt255 = False
@@ -40,5 +36,3 @@ def generate_random_netmask(netmask_values):
             nm.append('0')
         i += 1
     return nm
-
-random_netmask = generate_random_netmask(netmask_values)
