@@ -5,9 +5,7 @@ def run(tools, intro_shown=False):
     
     while str != 'q':
 
-        str = input("> ")
-
-        str = str.lower()
+        str = input("> ").lower()
 
         if str == 'q':
             return
@@ -24,7 +22,14 @@ def run(tools, intro_shown=False):
             try:
                 program = cmd.pop(0)
                 if program in tools:
-                    print(tools[program].exec(cmd))
+                    # If only program is specified, enter program exec mode
+                    if len(cmd) == 0:
+                        print(f"[{program}] EXEC mode (q to quit)")
+                        while cmd != ['q']:
+                            cmd = input(f"[{program}] ").lower().split()
+                            print(tools[program].exec(cmd))
+                    else:
+                        print(tools[program].exec(cmd))
                 else:
                     print(f"Command {program} not found")
             except IndexError:

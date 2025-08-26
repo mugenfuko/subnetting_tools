@@ -9,83 +9,42 @@ class subnet_finder:
 
         NETMASK_VALUES = modules.generate_netmask_values()
 
-        data = {
-            "address" : "",
-            "netmask" : "",
-        }
-
         def parse_cmd(cmd):
 
-            if not cmd:
-                return "Missing IP address and netmask"
+            data = {}
+            if cmd == []:
+                data["msg"] = "Missing IP address and netmask"
+                return data
+            
+            if cmd[0] == 'q':
+                data["msg"] = "Session terminated"
 
             if cmd[0] == "help" or cmd[0] == "-h":
-                return f"{self.name} - {self.description}\n{self.usage}"
+                data["msg"] = f"{self.name} - {self.description}\n{self.usage}"
 
             # Super secret command for testing purposes
             if cmd[0] == "rand" or cmd[0] == "-r":
                 random_ip = modules.generate_random_ip()
                 random_netmask = modules.generate_random_netmask()
-                return f"[sbnf] (RAND)IP{random_ip} (RAND)MASK{random_netmask}\nSUBNET: {'.'.join(generate_subnet_address(random_ip, random_netmask, find_network_value(random_ip, random_netmask)))}"
+                data["msg"] = f"(RAND)IP{random_ip} (RAND)MASK{random_netmask}\nSUBNET: {'.'.join(generate_subnet_address(random_ip, random_netmask, find_network_value(random_ip, random_netmask)))}"
             
-            if len(cmd) < 2:
-                return "Missing IP address or netmask"
+            if "msg" not in data.keys():
+                if len(cmd) < 2:
+                    data["msg"] = "Missing IP address or netmask"
+                    return data
 
-            if is_ipv4_address(cmd[0]):
-                data["address"] = cmd[0].split('.')
-            else:
-                return f"{cmd[0]} is not a valid IPv4 address"
+                if modules.is_ipv4_address(cmd[0]):
+                    data["address"] = cmd[0].split('.')
+                else:
+                    data["msg"] = f"{cmd[0]} is not a valid IPv4 address"
+                    return data
 
-            if is_netmask(cmd[1]):
-                data["netmask"] = cmd[1].split('.')
-            else:
-                return f"{cmd[1]} is not a valid netmask"
-
-        def is_integer(str):
-            try:
-                str = float(str)
-            except ValueError:
-                return False
-            return True
-
-        def is_ipv4_address(str):
-            # Check if address has 3 dots
-            if str.count('.') != 3:
-                return False
-            
-            # Convert to array if there are 3 dots
-            arr = str.split('.')
-            
-            for n in arr:
-                # Check if each variable in array is integer
-                if not is_integer(n):
-                    return False
-                # Check if each variable in array is 0-255
-                if int(n) < 0 or int(n) > 255:
-                    return False
-            return True
-        
-        def is_netmask(str):
-            # Check if IPv4 address format
-            if not is_ipv4_address(str):
-                return False
-            arr = str.split('.')
-            for i, n in enumerate(arr):
-                n = int(n)
-                # Check if values are possible netmask values
-                if n not in NETMASK_VALUES:
-                    return False
-                    break
-                if i > 0:
-                    # Check for logical sequencing of netmask
-                    prev = int(arr[i-1])
-                    if n > 0 and prev != 255:
-                        return False
-                        break
-                    if n > prev:
-                        return False
-                        break
-            return True
+                if modules.is_netmask(cmd[1]):
+                    data["netmask"] = cmd[1].split('.')
+                else:
+                    data["msg"] = f"{cmd[1]} is not a valid netmask"
+                    return data
+            return data
 
         def find_relevant_index(mask):
             i = 0
@@ -124,15 +83,9 @@ class subnet_finder:
                     subnet_address.append("0")
             return subnet_address
 
-        # Enable lines below for testing purposes
-        #data["address"] = modules.random_ip
-        #data["netmask"] = modules.random_netmask
-
-        # Disable line below for testing purposes
-        output = f"[sbnf] {parse_cmd(cmd)}"
-
-        if data["address"] and data["netmask"]:
+        data = parse_cmd(cmd)
+        if "msg" in data.keys():
+            return f"[sbnf] {data["msg"]}"
+        else:
             subnet_address = generate_subnet_address(data["address"], data["netmask"], find_network_value(data["address"], data["netmask"]))
             return f"[sbnf] SUBNET: {'.'.join(subnet_address)}"
-        else:
-            return output

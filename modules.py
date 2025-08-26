@@ -1,5 +1,12 @@
 import random
 
+def is_integer(str):
+    try:
+        str = float(str)
+    except ValueError:
+        return False
+    return True
+
 def generate_netmask_values():
     # Generate possible netmask values
     values = [0]
@@ -12,6 +19,46 @@ def generate_netmask_values():
                 break
         i += increment
     return values
+
+def is_ipv4_address(str):
+    # Check if address has 3 dots
+    if str.count('.') != 3:
+        return False
+    
+    # Convert to array if there are 3 dots
+    arr = str.split('.')
+    
+    for n in arr:
+        # Check if each variable in array is integer
+        if not is_integer(n):
+            return False
+        # Check if each variable in array is 0-255
+        if int(n) < 0 or int(n) > 255:
+            return False
+    return True
+
+def is_netmask(str):
+    NETMASK_VALUES = generate_netmask_values()
+    # Check if IPv4 address format
+    if not is_ipv4_address(str):
+        return False
+    arr = str.split('.')
+    for i, n in enumerate(arr):
+        n = int(n)
+        # Check if values are possible netmask values
+        if n not in NETMASK_VALUES:
+            return False
+            break
+        if i > 0:
+            # Check for logical sequencing of netmask
+            prev = int(arr[i-1])
+            if n > 0 and prev != 255:
+                return False
+                break
+            if n > prev:
+                return False
+                break
+    return True
 
 # Functions below are for testing purposes
 def generate_random_ip():
