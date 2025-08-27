@@ -1,9 +1,9 @@
-import tools, cli
+import tools, cli, tomllib
 
-subnet_finder = tools.subnet_finder()
+subnet_information = tools.subnet_information()
 
 TOOLS = {
-    "sbnf": subnet_finder
+    subnet_information.abbreviation: subnet_information
     }
 
 try:
