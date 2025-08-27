@@ -1,0 +1,3 @@
+# Decide what information you want to display as result
+[sbni]
+show_broadcast_address = true
