@@ -1,6 +1,6 @@
 import modules, tomllib
 
-def read_config_file(filepath, key=""):
+def read_config(filepath, key=""):
     try:
         with open(filepath, "rb") as f:
             data = tomllib.load(f)
@@ -9,20 +9,31 @@ def read_config_file(filepath, key=""):
     except FileNotFoundError:
         return
 
+# Fix spelling errors and the like in the config file
+def merge_configs(config, default):
+    # If a key isn't in the config file, supplement with key/value from default config
+    for key in default.keys():
+        if key not in config.keys():
+            print(f"Key \"{key}\" not present in config file, reverting to default")
+            config[key] = default[key]
+    return config
+
 class subnet_information:
     name = "Subnet Information"
     abbreviation = "sbni"
     description = "A tool to find various information about a given subnet."
     usage = f"usage: {abbreviation} [IPV4 ADDRESS] [SUBNETMASK]\nrand, -r: Script generates random ip/mask and executes"
-    default_config = {"show_broadcast_address" : True}
-
-    rand = False
+    default_config = {
+        "show_broadcast_address" : True,
+        "show_first_host_address" : True,
+        "show_last_host_address" : True
+        }
 
     def exec(self, cmd):
 
-        # Load config, use default config in case of error
+        # Load and merge config, use default config in case of error
         # TODO autogenerate config file if none present
-        config = read_config_file("config.toml", self.abbreviation)
+        config = merge_configs(read_config("config.toml", self.abbreviation), self.default_config)
         if not config:
             config = self.default_config
 
@@ -41,7 +52,7 @@ class subnet_information:
             if cmd[0] == "help" or cmd[0] == "-h":
                 data["msg"] = f"{self.name} - {self.description}\n{self.usage}"
 
-            # Super secret command for testing purposes
+            # Not so secret command for testing purposes
             if cmd[0] == "rand" or cmd[0] == "-r":
                 data["msg"] = "rand"
             
@@ -72,7 +83,7 @@ class subnet_information:
             return i
         
         # Find first or final network value depending on parameter
-        def find_network_values(ad, nm, find="first"):
+        def find_first_or_last_network_value(ad, nm, first=True):
             # Retrieve index of octet to process
             index = find_relevant_index(nm)
             ad_octet = int(ad[index])
@@ -83,7 +94,7 @@ class subnet_information:
             times_fits = ad_octet // remainder
             # Calculate value of network octet
             first_network_value = remainder * times_fits
-            if find == "last":
+            if not first:
                 return (first_network_value - 1) + remainder
             else:
                 return first_network_value
@@ -105,6 +116,24 @@ class subnet_information:
                     subnet_address.append(filler)
             return subnet_address
 
+        def generate_broadcast_address(ad, nm):
+            last_network_value = find_first_or_last_network_value(ad, nm, False)
+            return generate_subnet_address(ad, nm, last_network_value, "255")
+
+        def generate_first_or_last_host_address(ad, first=True):
+            # TODO Handle edge cases like /31 or /32 prefix length            
+            i = len(ad) - 1
+            while i >= 0:
+                if first and ad[i] != "255":
+                    ad[i] = str(int(ad[i]) + 1)
+                    break
+                elif not first and ad[i] != "0":
+                    ad[i] = str(int(ad[i]) - 1)
+                    break
+                i -= 1
+            print(ad)
+            return ad
+
         data = parse_cmd(cmd)
         if "msg" in data.keys() and data["msg"] != "rand": # For randomization, might remove later
             return f"[{self.abbreviation}] {data["msg"]}"
@@ -117,15 +146,25 @@ class subnet_information:
                 print(f"(rand) {'.'.join(data["address"])} {'.'.join(data["netmask"])}")
 
             # Normal lines start here
+            address = data["address"]
+            netmask = data["netmask"]
             raw = {}
-            first_network_value = find_network_values(data["address"], data["netmask"])
+
             # Generate subnet address
-            raw["subnet address"] = '.'.join(generate_subnet_address(data["address"], data["netmask"], first_network_value))
+            first_network_value = find_first_or_last_network_value(address, netmask, True)
+            raw["subnet address"] = '.'.join(generate_subnet_address(address, netmask, first_network_value))
             # Generate broadcast address
-            if config["show_broadcast_address"] == True:
-                last_network_value = find_network_values(data["address"], data["netmask"], "last")
-                raw["broadcast address"] = '.'.join(generate_subnet_address(data["address"], data["netmask"], last_network_value, "255"))
+            if config["show_broadcast_address"]:
+                raw["broadcast address"] = '.'.join(generate_broadcast_address(address, netmask))
             
+            # First host address
+            if config["show_first_host_address"]:
+                raw["first host address"] = '.'.join(generate_first_or_last_host_address(raw["subnet address"].split('.')))
+            
+            # Last host address
+            if config["show_last_host_address"]:
+                raw["last host address"] = '.'.join(generate_first_or_last_host_address(generate_broadcast_address(address, netmask), False))
+
             # Make the raw look nnnice~
             output = []
             for k, v in raw.items():

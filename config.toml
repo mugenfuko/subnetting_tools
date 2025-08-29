@@ -1,3 +1,5 @@
 # Decide what information you want to display as result
 [sbni]
 show_broadcast_address = true
+show_first_host_address = true
+show_last_host_address = true
